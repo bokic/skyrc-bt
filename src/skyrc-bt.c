@@ -158,16 +158,12 @@ struct skyrc_bt_scan_context {
     const char *adapter_path;
 };
 
-static void skyrc_bt_scan_added_signal(GDBusConnection *bus, const char *sender,
-    const char *object_path, const char *interface_name, const char *signal_name,
+static void skyrc_bt_scan_added_signal(GDBusConnection *bus G_GNUC_UNUSED,
+    const char *sender G_GNUC_UNUSED, const char *object_path G_GNUC_UNUSED,
+    const char *interface_name G_GNUC_UNUSED, const char *signal_name G_GNUC_UNUSED,
     GVariant *parameters, void *user_data)
 {
     struct skyrc_bt_scan_context *context = user_data;
-    (void)bus;
-    (void)sender;
-    (void)object_path;
-    (void)interface_name;
-    (void)signal_name;
     const char *device_path = NULL;
     g_variant_get_child(parameters, 0, "&o", &device_path);
     GVariant *interfaces = g_variant_get_child_value(parameters, 1);
@@ -181,15 +177,12 @@ static void skyrc_bt_scan_added_signal(GDBusConnection *bus, const char *sender,
     g_variant_unref(interfaces);
 }
 
-static void skyrc_bt_scan_changed_signal(GDBusConnection *bus, const char *sender,
-    const char *object_path, const char *interface_name, const char *signal_name,
+static void skyrc_bt_scan_changed_signal(GDBusConnection *bus G_GNUC_UNUSED,
+    const char *sender G_GNUC_UNUSED, const char *object_path,
+    const char *interface_name G_GNUC_UNUSED, const char *signal_name G_GNUC_UNUSED,
     GVariant *parameters, void *user_data)
 {
     struct skyrc_bt_scan_context *context = user_data;
-    (void)bus;
-    (void)sender;
-    (void)interface_name;
-    (void)signal_name;
     const char *changed_interface;
     GVariant *changed = NULL, *invalidated = NULL;
     g_variant_get(parameters, "(&s@a{sv}@as)", &changed_interface, &changed,
@@ -291,7 +284,7 @@ cleanup:
 static bool skyrc_bt_make_device_path(const char *adapter_path,
                                       const char *address, char **device_path)
 {
-    unsigned char address_component[18];
+    char address_component[18];
     size_t length;
     if (!address) return false;
     length = strlen(address);
@@ -303,11 +296,11 @@ static bool skyrc_bt_make_device_path(const char *adapter_path,
             address_component[i] = '_';
         } else {
             if (!isxdigit(c)) return false;
-            address_component[i] = (unsigned char)g_ascii_toupper((char)c);
+            address_component[i] = g_ascii_toupper((char)c);
         }
     }
     address_component[length] = '\0';
-    *device_path = g_strdup_printf("%s/dev_%s", adapter_path, (char *)address_component);
+    *device_path = g_strdup_printf("%s/dev_%s", adapter_path, address_component);
     return *device_path != NULL;
 }
 
@@ -424,7 +417,7 @@ static bool skyrc_bt_normalize_uuid(const char *input, char uuid[37])
         return false;
     }
     for (size_t i = 0; i < 36; ++i)
-        uuid[i] = (char)g_ascii_tolower(uuid[i]);
+        uuid[i] = g_ascii_tolower(uuid[i]);
     return true;
 }
 
@@ -559,16 +552,12 @@ enum skyrc_bt_error skyrc_bt_gatt_write(skyrc_bt_device *device,
     return SKYRC_BT_OK;
 }
 
-static void skyrc_bt_notify_changed(GDBusConnection *bus, const char *sender,
-    const char *object_path, const char *interface_name, const char *signal_name,
+static void skyrc_bt_notify_changed(GDBusConnection *bus G_GNUC_UNUSED,
+    const char *sender G_GNUC_UNUSED, const char *object_path G_GNUC_UNUSED,
+    const char *interface_name G_GNUC_UNUSED, const char *signal_name G_GNUC_UNUSED,
     GVariant *parameters, void *user_data)
 {
     skyrc_bt_device *device = user_data;
-    (void)bus;
-    (void)sender;
-    (void)object_path;
-    (void)interface_name;
-    (void)signal_name;
     const char *changed_interface;
     GVariant *changed = NULL, *invalidated = NULL, *value = NULL;
     g_variant_get(parameters, "(&s@a{sv}@as)", &changed_interface, &changed,
