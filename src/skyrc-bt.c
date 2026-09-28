@@ -9,6 +9,19 @@
 
 #define SKYRC_BT_UPGRADE_CHUNK_SIZE 20
 
+struct skyrc_bt_protocol_config {
+    uint8_t header;
+    size_t header_length;
+    size_t command_offset;
+    size_t length_offset;
+    int16_t length_adjust;
+    size_t tail_length;
+    const uint8_t *ignored_commands;
+    size_t ignored_command_count;
+    size_t maximum_frame_length;
+    uint8_t *owned_ignored_commands;
+};
+
 struct skyrc_bt_scan_result {
     const char *address;
     const char *name;
@@ -687,7 +700,44 @@ static bool skyrc_bt_is_ignored(const skyrc_bt_decoder *decoder, uint8_t command
     return false;
 }
 
-skyrc_bt_decoder *skyrc_bt_decoder_create(const struct skyrc_bt_protocol_config *config)
+skyrc_bt_protocol_config *skyrc_bt_protocol_config_create(
+    uint8_t header, size_t header_length, size_t command_offset,
+    size_t length_offset, int16_t length_adjust, size_t tail_length,
+    const uint8_t *ignored_commands, size_t ignored_command_count,
+    size_t maximum_frame_length)
+{
+    if (ignored_command_count && !ignored_commands) return NULL;
+    skyrc_bt_protocol_config *config = calloc(1, sizeof(*config));
+    if (!config) return NULL;
+    if (ignored_command_count) {
+        config->owned_ignored_commands = malloc(ignored_command_count);
+        if (!config->owned_ignored_commands) {
+            free(config);
+            return NULL;
+        }
+        memcpy(config->owned_ignored_commands, ignored_commands,
+               ignored_command_count);
+    }
+    config->header = header;
+    config->header_length = header_length;
+    config->command_offset = command_offset;
+    config->length_offset = length_offset;
+    config->length_adjust = length_adjust;
+    config->tail_length = tail_length;
+    config->ignored_commands = config->owned_ignored_commands;
+    config->ignored_command_count = ignored_command_count;
+    config->maximum_frame_length = maximum_frame_length;
+    return config;
+}
+
+void skyrc_bt_protocol_config_free(skyrc_bt_protocol_config *config)
+{
+    if (!config) return;
+    free(config->owned_ignored_commands);
+    free(config);
+}
+
+skyrc_bt_decoder *skyrc_bt_decoder_create(const skyrc_bt_protocol_config *config)
 {
     skyrc_bt_decoder *decoder;
 

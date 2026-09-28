@@ -37,23 +37,8 @@ enum skyrc_bt_error {
     SKYRC_BT_OUT_OF_MEMORY,
 };
 
-/** Framing rules used by the APK's BLE notification decoder.
- * The expected frame size is the unsigned byte at length_offset plus
- * length_adjust. Frame payload excludes header_length bytes and tail_length
- * bytes; command is selected using command_offset from the frame start.
- * command_offset and length_offset must be nonzero offsets in the frame.
- */
-struct skyrc_bt_protocol_config {
-    uint8_t header;
-    size_t header_length;
-    size_t command_offset;
-    size_t length_offset;
-    int16_t length_adjust;
-    size_t tail_length;
-    const uint8_t *ignored_commands;
-    size_t ignored_command_count;
-    size_t maximum_frame_length;
-};
+/** Opaque notification framing configuration. */
+typedef struct skyrc_bt_protocol_config skyrc_bt_protocol_config;
 
 /** Opaque incremental BLE notification decoder. */
 typedef struct skyrc_bt_decoder skyrc_bt_decoder;
@@ -181,12 +166,26 @@ EXPORT_SKYRC_BT enum skyrc_bt_error skyrc_bt_notify_stop(skyrc_bt_device *device
 EXPORT_SKYRC_BT enum skyrc_bt_error skyrc_bt_poll(skyrc_bt_device *device,
     int timeout_ms);
 
+/** Create an immutable protocol configuration.
+ * The ignored command bytes are copied and may be released by the caller.
+ * @return New configuration, or NULL if allocation fails.
+ */
+EXPORT_SKYRC_BT skyrc_bt_protocol_config *skyrc_bt_protocol_config_create(
+    uint8_t header, size_t header_length, size_t command_offset,
+    size_t length_offset, int16_t length_adjust, size_t tail_length,
+    const uint8_t *ignored_commands, size_t ignored_command_count,
+    size_t maximum_frame_length);
+
+/** Destroy a protocol configuration; NULL is allowed. */
+EXPORT_SKYRC_BT void skyrc_bt_protocol_config_free(
+    skyrc_bt_protocol_config *config);
+
 /** Create a decoder using a copy of the supplied protocol configuration.
  * @param config Valid frame layout; ignored command bytes are copied.
  * @return New decoder, or NULL if the configuration is invalid or allocation fails.
  */
 EXPORT_SKYRC_BT skyrc_bt_decoder *skyrc_bt_decoder_create(
-    const struct skyrc_bt_protocol_config *config);
+    const skyrc_bt_protocol_config *config);
 
 /** Destroy a notification decoder.
  * @param decoder Decoder to free; NULL is allowed.
