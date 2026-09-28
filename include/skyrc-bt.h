@@ -34,12 +34,14 @@ enum skyrc_bt_error {
     SKYRC_BT_TIMEOUT,
     SKYRC_BT_NOT_CONNECTED,
     SKYRC_BT_BUFFER_TOO_SMALL,
+    SKYRC_BT_OUT_OF_MEMORY,
 };
 
 /** Framing rules used by the APK's BLE notification decoder.
  * The expected frame size is the unsigned byte at length_offset plus
  * length_adjust. Frame payload excludes header_length bytes and tail_length
  * bytes; command is selected using command_offset from the frame start.
+ * command_offset and length_offset must be nonzero offsets in the frame.
  */
 struct skyrc_bt_protocol_config {
     uint8_t header;

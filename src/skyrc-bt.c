@@ -222,6 +222,24 @@ enum skyrc_bt_error skyrc_bt_scan(const char *adapter, int duration_ms,
         skyrc_bt_scan_changed_signal, &scan_context, NULL);
     g_main_context_pop_thread_default(main_context);
 
+    /* Report devices BlueZ already knows about before discovery starts. */
+    GVariantIter object_iter;
+    const char *object_path;
+    GVariant *interfaces;
+    g_variant_iter_init(&object_iter, objects);
+    while (g_variant_iter_next(&object_iter, "{&o@a{sa{sv}}}", &object_path,
+                               &interfaces)) {
+        if (g_str_has_prefix(object_path, adapter_path)) {
+            GVariant *properties = g_variant_lookup_value(interfaces,
+                "org.bluez.Device1", G_VARIANT_TYPE("a{sv}"));
+            if (properties) {
+                skyrc_bt_report_scan_device(object_path, properties, callback, context);
+                g_variant_unref(properties);
+            }
+        }
+        g_variant_unref(interfaces);
+    }
+
     reply = g_dbus_connection_call_sync(bus, "org.bluez", adapter_path,
         "org.bluez.Adapter1", "StartDiscovery", NULL, G_VARIANT_TYPE("()"),
         G_DBUS_CALL_FLAGS_NONE, 5000, NULL, &error);
@@ -272,7 +290,7 @@ static bool skyrc_bt_make_device_path(const char *adapter_path,
             address_component[i] = '_';
         } else {
             if (!isxdigit(c)) return false;
-            address_component[i] = (unsigned char)toupper((int)c);
+            address_component[i] = (unsigned char)g_ascii_toupper((char)c);
         }
     }
     address_component[length] = '\0';
@@ -347,7 +365,7 @@ enum skyrc_bt_error skyrc_bt_connect(const char *adapter, const char *address,
 
     skyrc_bt_device *connected = calloc(1, sizeof(*connected));
     if (!connected) {
-        status = SKYRC_BT_DBUS_ERROR;
+        status = SKYRC_BT_OUT_OF_MEMORY;
         goto cleanup;
     }
     connected->bus = bus;
