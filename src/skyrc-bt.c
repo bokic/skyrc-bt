@@ -260,7 +260,7 @@ cleanup:
 static bool skyrc_bt_make_device_path(const char *adapter_path,
                                       const char *address, char **device_path)
 {
-    char address_component[18];
+    unsigned char address_component[18];
     size_t length;
     if (!address) return false;
     length = strlen(address);
@@ -272,11 +272,11 @@ static bool skyrc_bt_make_device_path(const char *adapter_path,
             address_component[i] = '_';
         } else {
             if (!isxdigit(c)) return false;
-            address_component[i] = (char)g_ascii_toupper(c);
+            address_component[i] = (unsigned char)toupper((int)c);
         }
     }
     address_component[length] = '\0';
-    *device_path = g_strdup_printf("%s/dev_%s", adapter_path, address_component);
+    *device_path = g_strdup_printf("%s/dev_%s", adapter_path, (char *)address_component);
     return *device_path != NULL;
 }
 

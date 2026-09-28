@@ -24,6 +24,34 @@ add_library(libskyrc-bt SHARED
 )
 target_compile_definitions(libskyrc-bt PRIVATE libskyrc_bt_EXPORTS)
 target_link_libraries(libskyrc-bt PRIVATE PkgConfig::GIO)
+target_compile_options(libskyrc-bt PRIVATE
+    $<$<C_COMPILER_ID:GNU,Clang>:
+        -Wall
+        -Wextra
+        -Wpedantic
+        -Wshadow
+        -Wcast-qual
+        -Wcast-align
+        -Wstrict-prototypes
+        -Wmissing-prototypes
+        -Wmissing-declarations
+        -Wredundant-decls
+        -Wnull-dereference
+        -Wformat=2
+        -Wformat-overflow=2
+        -Wformat-truncation=2
+        -Wvla
+        -Wwrite-strings
+        -Wconversion
+        -Wsign-conversion
+        -Wdouble-promotion
+        -Wundef
+        -Wuninitialized
+        -Winit-self
+        -Wlogical-op
+        -Werror
+    >
+)
 
 set_target_properties(libskyrc-bt PROPERTIES
     PUBLIC_HEADER "../include/skyrc-bt.h"
