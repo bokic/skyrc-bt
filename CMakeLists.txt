@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.15)
 
 project(libskyrc C)
 
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    set(CMAKE_INSTALL_PREFIX "/usr" CACHE PATH "Install prefix" FORCE)
+endif()
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(CMAKE_C_STANDARD 23)
@@ -54,10 +58,18 @@ target_compile_options(libskyrc-bt PRIVATE
 )
 
 set_target_properties(libskyrc-bt PROPERTIES
-    PUBLIC_HEADER "../include/skyrc-bt.h"
+    PUBLIC_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/include/skyrc-bt.h"
     INTERPROCEDURAL_OPTIMIZATION TRUE
     C_VISIBILITY_PRESET hidden
     OUTPUT_NAME "skyrc-bt"
     VERSION "1.89.0"
     SOVERSION "1.89"
+)
+
+include(GNUInstallDirs)
+
+install(TARGETS libskyrc-bt
+    RUNTIME       DESTINATION ${CMAKE_INSTALL_BINDIR}
+    LIBRARY       DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
