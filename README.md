@@ -37,6 +37,26 @@ cmake -G Ninja -S . -B build
 cmake --build build
 ```
 
+The build also creates the `skyrc-bt` command-line tool in `bin/`. It exposes the
+library's device and helper operations:
+
+```sh
+skyrc-bt scan [--adapter hci0] [--duration MS]
+skyrc-bt connect <address> [--adapter hci0] [--timeout MS]
+skyrc-bt read <address> <service-uuid> <characteristic-uuid> [connection options]
+skyrc-bt write <address> <service-uuid> <characteristic-uuid> <hex-bytes> [connection options] [--command]
+skyrc-bt notify <address> <service-uuid> <characteristic-uuid> [--duration MS] [connection options]
+skyrc-bt decode <header-hex> <header-len> <command-offset> <length-offset> <length-adjust> <tail-len> <max-frame> <hex-bytes>
+skyrc-bt chunk-count <image-file>
+skyrc-bt chunk <image-file> <index>
+```
+
+`notify` prints raw notification bytes. `decode` passes a hex byte string through
+the incremental frame decoder and prints each complete frame's command and
+payload. Firmware chunk commands operate on files and report 20-byte chunk
+contents in hexadecimal. Writes use GATT write requests by default; `--command`
+selects a write without response.
+
 ## Using the library
 
 Include `skyrc-bt.h` and link your program against `libskyrc-bt` and GIO. The public interface is declared in [`include/skyrc-bt.h`](include/skyrc-bt.h).
